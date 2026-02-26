@@ -1,0 +1,67 @@
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back</h2>
+        <p style="color: var(--text-muted); margin-bottom: 32px;">Login to your professional document workspace</p>
+
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" [(ngModel)]="email" class="form-control" placeholder="name@company.com">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <div class="password-input-group">
+                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" class="form-control" placeholder="••••••••">
+                <button type="button" (click)="togglePasswordVisibility()" class="password-toggle-btn">
+                    <span *ngIf="!showPassword">👁️</span>
+                    <span *ngIf="showPassword">👁️‍🗨️</span>
+                </button>
+            </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 8px; margin-bottom: 16px;">
+            <a (click)="openForgotModal()" style="color: var(--primary); font-weight: 500; cursor: pointer; text-decoration: none; font-size: 0.875rem;">
+                Forgot Password?
+            </a>
+        </div>
+
+        <button (click)="onSubmit()" class="btn btn-primary" [disabled]="loading"
+            style="width: 100%; margin-top: 12px;">
+            <span *ngIf="loading">Authenticating...</span>
+            <span *ngIf="!loading">Sign In</span>
+        </button>
+
+        <div style="margin-top: 24px; text-align: center; font-size: 0.875rem; color: var(--text-muted);">
+            New here? <a routerLink="/register"
+                style="color: var(--primary); font-weight: 600; text-decoration: none;">Create professional account</a>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div *ngIf="showForgotModal" class="modal-overlay" (click)="closeForgotModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Reset Password</h3>
+            <button type="button" class="modal-close-btn" (click)="closeForgotModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="color: var(--text-muted); margin-bottom: 16px;">Enter your email address and we'll send you a link to reset your password.</p>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" [(ngModel)]="forgotEmail" class="form-control" placeholder="name@company.com">
+            </div>
+            <div *ngIf="forgotMessage" class="alert" [ngClass]="forgotMessage.includes('sent') ? 'alert-success' : 'alert-danger'">
+                {{ forgotMessage }}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button (click)="closeForgotModal()" class="btn btn-secondary">Cancel</button>
+            <button (click)="submitForgotPassword()" class="btn btn-primary" [disabled]="forgotLoading">
+                <span *ngIf="forgotLoading">Sending...</span>
+                <span *ngIf="!forgotLoading">Send Reset Link</span>
+            </button>
+        </div>
+    </div>
+</div>

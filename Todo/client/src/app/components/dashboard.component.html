@@ -1,0 +1,223 @@
+<div class="dashboard-wrapper">
+    <nav class="glass-nav">
+        <h2
+            style="margin-bottom: 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+            DMS PRO</h2>
+
+        <div style="flex: 1;">
+            <!-- Navigation links can go here -->
+            <div
+                style="padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); color: white; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.2rem;">📁</span> Documents
+            </div>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--glass-border);">
+            <div style="margin-bottom: 16px; font-size: 0.875rem; color: var(--text-muted);">
+                Logged in as <br>
+                <span style="color: white; font-weight: 600;">{{ user.username }}</span>
+            </div>
+            <button (click)="logout()" class="btn btn-outline" style="width: 100%;">Sign Out</button>
+        </div>
+    </nav>
+
+    <main class="dashboard-content">
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0; font-size: 2.5rem; font-weight: 700;">Your Workspace</h1>
+                <p style="color: var(--text-muted); margin-top: 8px;">Manage and share your secure documents</p>
+            </div>
+            <button (click)="showUpload = true" class="btn btn-primary">
+                <span>+</span> New Document
+            </button>
+        </div>
+
+        <!-- Dashboard Success Message -->
+        <div *ngIf="dashboardSuccess" style="padding: 16px 24px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease;">
+            <span style="font-size: 1.5rem;">✅</span>
+            <div>
+                <p style="color: #22c55e; font-weight: 600; margin: 0;">{{ dashboardSuccess }}</p>
+                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px;">Check your documents list below</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 32px; display: flex; gap: 16px;">
+            <div style="flex: 1; position: relative;">
+                <input type="text" [(ngModel)]="searchQuery" placeholder="Search documents..." (input)="onSearch()"
+                    class="form-control" style="background: var(--glass); padding-left: 44px;">
+                <span
+                    style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">🔍</span>
+            </div>
+            <input type="text" [(ngModel)]="searchTags" placeholder="Filter by tags..." (input)="onSearch()"
+                class="form-control" style="background: var(--glass); width: 240px;">
+        </div>
+
+        <div class="document-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document Title</th>
+                        <th>Ver.</th>
+                        <th>Owner</th>
+                        <th>Tags</th>
+                        <th>Last Modified</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let doc of documents">
+                        <td style="font-weight: 500;">{{ doc.title }}</td>
+                        <td><span class="badge badge-primary">v{{ doc.currentVersion || 1 }}</span></td>
+                        <td>{{ doc.owner?.username }}</td>
+                        <td>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <span class="badge"
+                                    style="background: rgba(255,255,255,0.05); color: var(--text-muted); font-size: 0.7rem;">
+                                    {{ doc.tag }}
+                                </span>
+                            </div>
+                        </td>
+                        <td style="color: var(--text-muted); font-size: 0.875rem;">{{ doc.createdAt | date:'MMM d, yyyy'
+                            }}</td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <a [href]="'http://127.0.0.1:5000/' + doc.filePath" target="_blank"
+                                    class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;">View</a>
+                                <button (click)="loadVersionHistory(doc)" class="btn btn-outline"
+                                    style="padding: 6px 12px; font-size: 0.8rem;">History</button>
+                                <button (click)="openVersionUpdate(doc)" class="btn btn-outline"
+                                    style="padding: 6px 12px; font-size: 0.8rem;">Update</button>
+                                <button *ngIf="doc.ownerId === user.id" (click)="openPermissions(doc)"
+                                    class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">Share</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Empty State -->
+            <div *ngIf="!documents?.length"
+                style="padding: 60px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 0 0 16px 16px;">
+                <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;">📂</div>
+                <h3 style="color: white; margin-bottom: 8px;">No Documents Yet</h3>
+                <p style="color: var(--text-muted);">Start by uploading your first document or searching with different
+                    terms.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals (Re-using classes for consistency) -->
+    <div *ngIf="showUpload" class="modal-overlay">
+        <div class="modal-container">
+            <h3 style="margin-top: 0;">Upload Document</h3>
+            
+            <!-- Success State -->
+            <div *ngIf="success" style="padding: 20px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 12px;">✅</div>
+                <p style="color: #22c55e; font-weight: 600; margin: 0;">{{ success }}</p>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 8px;">Document is now available in your workspace</p>
+                <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 12px;">Closing automatically...</p>
+            </div>
+
+            <!-- Upload Form (Hidden when successful) -->
+            <div *ngIf="!success">
+                <div class="form-group">
+                    <label>Title <span style="color: red;">*</span></label>
+                    <input type="text" [(ngModel)]="uploadTitle" class="form-control" placeholder="Project Roadmap" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea [(ngModel)]="uploadDesc" class="form-control" placeholder="Detailed document description..."
+                        rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" [(ngModel)]="uploadTags" class="form-control" placeholder="Design, 2024, Internal">
+                </div>
+                <div class="form-group">
+                    <label>File <span style="color: red;">*</span></label>
+                    <input type="file" (change)="onFileSelected($event)" class="form-control" style="padding: 10px;" required>
+                    <small style="color: var(--text-muted);">Max 100MB. Select any file type.</small>
+                </div>
+                <div *ngIf="error" class="alert alert-danger" style="margin-top: 12px;">{{ error }}</div>
+                <div style="display: flex; gap: 12px; margin-top: 12px;">
+                    <button type="button" (click)="onUpload()" class="btn btn-primary" [disabled]="isUploading || !selectedFile || !uploadTitle" style="flex: 1;">
+                        <span *ngIf="!isUploading">📤 Upload Now</span>
+                        <span *ngIf="isUploading">⏳ Processing...</span>
+                    </button>
+                    <button type="button" (click)="resetUploadForm()" class="btn btn-outline">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="showPermissions" class="modal-overlay">
+        <div class="modal-container">
+            <h3 style="margin-top: 0;">Collaborate</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 24px;">Share your document with
+                colleagues</p>
+            <div class="form-group">
+                <label>Select User</label>
+                <select [(ngModel)]="permUserId" class="form-control">
+                    <option value="">Choose a user...</option>
+                    <option *ngFor="let u of users" [value]="u.id">{{ u.username }} ({{ u.email }})</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Access Level</label>
+                <select [(ngModel)]="permAccess" class="form-control">
+                    <option value="viewer">Viewer (Read Only)</option>
+                    <option value="editor">Editor (Can Update)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top:12px;">
+                <button (click)="updatePermission()" class="btn btn-primary" style="flex: 1;">Update
+                    Permissions</button>
+                <button (click)="showPermissions = false" class="btn btn-outline">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version History Modal -->
+    <div *ngIf="showVersions" class="modal-overlay">
+        <div class="modal-container" style="max-width: 600px;">
+            <h3 style="margin-top: 0;">Version History</h3>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Track changes for <strong>{{ selectedDoc?.title
+                    }}</strong></p>
+
+            <div
+                style="max-height: 400px; overflow-y: auto; margin: 20px 0; border: 1px solid var(--glass-border); border-radius: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: rgba(255,255,255,0.02);">
+                        <tr>
+                            <th style="padding: 12px; text-align: left; font-size: 0.8rem;">Ver.</th>
+                            <th style="padding: 12px; text-align: left; font-size: 0.8rem;">Updated By</th>
+                            <th style="padding: 12px; text-align: left; font-size: 0.8rem;">Date</th>
+                            <th style="padding: 12px; text-align: right; font-size: 0.8rem;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let ver of selectedDoc?.versions"
+                            style="border-top: 1px solid var(--glass-border);">
+                            <td style="padding: 12px;"><span class="badge badge-primary">v{{ ver.versionNumber }}</span>
+                            </td>
+                            <td style="padding: 12px;">{{ ver.updater?.username || 'System' }}</td>
+                            <td style="padding: 12px; color: var(--text-muted); font-size: 0.8rem;">{{ ver.createdAt |
+                                date:'MMM d, HH:mm' }}</td>
+                            <td style="padding: 12px; text-align: right;">
+                                <a [href]="'http://127.0.0.1:5000/' + ver.filePath" target="_blank"
+                                    class="btn btn-outline" style="padding: 4px 8px; font-size: 0.7rem;">Download</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div *ngIf="!selectedDoc?.versions?.length" style="padding: 40px; text-align: center; opacity: 0.5;">
+                    No previous versions found.
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button (click)="showVersions = false" class="btn btn-outline">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
