@@ -58,7 +58,7 @@ SmartWinnrAssign/
 | Angular CLI         | 21.1.5          |
 | TypeScript          | 5.9.2           |
 | Express             | 4.x             |
-| Database            | 8.0.x           |
+| MongoDB( server)    | 8.0.x           |
 | OS Tested           | Windows 11      |
 
 Developed and tested using **Node.js 18.x LTS**.
@@ -84,7 +84,7 @@ npm -v
 #### 1️⃣ Clone Repository
 
 ```bash
-git clone <https://github.com/poojithanemala21/SmartWinnrAssign_DMS>
+git clone https://github.com/poojithanemala21/SmartWinnrAssign_DMS.git
 cd SmartWinnrAssign
 ```
 
@@ -96,15 +96,6 @@ Or download ZIP and extract the project.
 cd server
 npm install
 ```
-
-Create `.env` file inside `server/`:
-
-```env
-PORT=5000
-MONGO_URI=
-JWT_SECRET=your_secret_key
-```
-
 Start backend:
 
 ```bash
@@ -154,9 +145,6 @@ Add more endpoints here if your implementation exposes them.
 - No role-based access control (single user role).
 - No production deployment configuration included.
 
-### 📸 Screenshots
-
-If required by the assignment, add screenshots here (login page, upload screen, document list, version history, etc.).
 
 ### 🧪 How to Test
 
